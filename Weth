@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract WETH is ERC20 {
+    event Deposit(address indexed sender, uint256 ethAmount);
+    event Withdrawal(address indexed sender, uint256 ethAmount);
+
+    constructor() ERC20("Wrapped Ether", "WETH") {
+        _mint(msg.sender, 1000000000 * (10 ** 18)); // 初始供应量
+    }
+
+    // 存款功能，用户发送 ETH 到合约地址，合约给用户等量的 WETH
+    function deposit() public payable {
+        _mint(msg.sender, msg.value); // 铸造 WETH
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    // 取款功能，用户发送 WETH 到合约地址，合约给用户等量的 ETH
+    function withdraw(uint256 wethAmount) public {
+        _burn(msg.sender, wethAmount); // 销毁 WETH
+        payable(msg.sender).transfer(wethAmount); // 发送 ETH
+        emit Withdrawal(msg.sender, wethAmount);
+    }
+
+    // 允许合约接收 ETH
+    receive() external payable {}
+
+    // 获取合约中的 ETH 余额
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+}
