@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract WETH {
+    // 事件定义
+    event Deposit(address indexed sender, uint256 ethAmount);
+    event Withdrawal(address indexed sender, uint256 ethAmount);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    // 存储用户的余额
+    mapping(address => uint256) public balanceOf;
+
+    // 允许合约接收 ETH
+    receive() external payable {}
+
+    // 存款功能，用户发送 ETH 到合约地址，合约给用户增加余额
+    function deposit() public payable {
+        balanceOf[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    // 取款功能，用户减少余额，合约给用户发送 ETH
+    function withdraw(uint256 amount) public {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+        emit Withdrawal(msg.sender, amount);
+    }
+
+    // 允许用户之间转账
+    function transfer(address to, uint256 value) public {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+    }
+
+    // 获取合约中的 ETH 余额
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+}
